@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    stages {
+        stage('build') {
+            steps {
+                script {
+                    sh ('./build.sh ${BUILD_TYPE}')
+                }
+            }
+        }
+        stage('unitTest') {
+            steps {
+                script {
+                    sh ('./gradlew test${BUILD_TYPE}UnitTest')
+                }
+            }
+        }
+        stage('archive') {
+            steps {
+                archiveArtifacts 'out/**'
+            }
+        }
+        stage('upload: release') {
+            when {
+                environment name: 'BUILD_TYPE', value: 'release'
+            }
+            steps {
+                sh('echo "Upload release APP done"')
+            }
+        }
+        stage('Channels') {
+            input {
+                message 'Should we package for channels?'
+                ok 'Yes, continue.'
+            }
+            steps {
+                sh('echo "APP for channels packaged."')
+            }
+        }
+    }
+}
